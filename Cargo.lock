@@ -261,10 +261,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "snag"
+name = "snag-cli"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "serde_json",
+ "snag-lib",
+]
+
+[[package]]
+name = "snag-lib"
+version = "0.1.0"
+dependencies = [
  "serde",
  "serde_json",
  "sha2",

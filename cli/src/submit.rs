@@ -1,4 +1,4 @@
-use crate::{bundle::ReportBundle, check};
+use snag_lib::{bundle::ReportBundle, check};
 use std::io::{self, Write};
 use std::path::Path;
 use std::process::Command;
@@ -17,11 +17,11 @@ pub fn run(bundle_path: &str, force: bool, _config_path: Option<&str>) -> i32 {
     };
 
     // Schema version check
-    if bundle.schema_version > crate::bundle::SCHEMA_VERSION {
+    if bundle.schema_version > snag_lib::bundle::SCHEMA_VERSION {
         eprintln!(
             "Bundle schema version {} > supported {}. Please upgrade snag.",
             bundle.schema_version,
-            crate::bundle::SCHEMA_VERSION
+            snag_lib::bundle::SCHEMA_VERSION
         );
         return 1;
     }
@@ -223,7 +223,7 @@ fn create_issue(repo: &str, title: &str, body: &str, labels: &[String]) -> Resul
 // ── Session counter ────────────────────────────────────────────────────────
 
 fn session_file() -> std::path::PathBuf {
-    use crate::bundle::now_utc;
+    use snag_lib::bundle::now_utc;
     let date = &now_utc()[..10]; // YYYY-MM-DD
     std::env::temp_dir().join(format!("snag-session-{date}.count"))
 }

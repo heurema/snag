@@ -1,9 +1,4 @@
-mod bundle;
-mod check;
-mod detect;
 mod file;
-mod redact;
-mod registry;
 mod submit;
 
 use clap::{Parser, Subcommand};
@@ -77,12 +72,12 @@ fn main() {
     let cli = Cli::parse();
 
     let exit_code = match cli.command {
-        Commands::Detect { config } => detect::run(config.as_deref()),
+        Commands::Detect { config } => snag_lib::detect::run(config.as_deref()),
         Commands::Check {
             title,
             product,
             config,
-        } => check::run(&title, product.as_deref(), config.as_deref()),
+        } => snag_lib::check::run(&title, product.as_deref(), config.as_deref()),
         Commands::File {
             auto,
             product,
@@ -112,7 +107,7 @@ fn main() {
 }
 
 fn init_config() -> i32 {
-    let config_dir = registry::config_dir();
+    let config_dir = snag_lib::registry::config_dir();
     let config_path = config_dir.join("config.toml");
 
     if config_path.exists() {

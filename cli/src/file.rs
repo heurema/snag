@@ -1,4 +1,4 @@
-use crate::{
+use snag_lib::{
     bundle::{
         ContextInfo, EnvironmentInfo, ErrorInfo, ErrorKind, Metadata, ProductInfo, ReportBundle,
         ReporterInfo, UserInfo, SCHEMA_VERSION, now_utc,
