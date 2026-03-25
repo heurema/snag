@@ -1,6 +1,39 @@
 use crate::{detect, registry};
 use std::process::Command;
 
+/// Search for an existing issue by fingerprint hash.
+/// Returns the first matching issue if found.
+pub fn find_by_fingerprint(repo: &str, fp: &str) -> Option<IssueMatch> {
+    let query = format!("snag:fp:{fp}");
+    let output = Command::new("gh")
+        .args([
+            "search",
+            "issues",
+            &query,
+            "--repo",
+            repo,
+            "--state",
+            "open",
+            "--json",
+            "number,title",
+            "--limit",
+            "1",
+        ])
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let items: Vec<GhIssue> = serde_json::from_str(&stdout).ok()?;
+    items
+        .into_iter()
+        .next()
+        .map(|i| IssueMatch { number: i.number, title: i.title })
+}
+
 pub fn run(title: &str, product: Option<&str>, config_path: Option<&str>) -> i32 {
     let config = match registry::load_config(config_path) {
         Ok(c) => c,
@@ -110,8 +143,22 @@ pub fn find_similar(repo: &str, title: &str) -> Result<Vec<IssueMatch>, String> 
         .collect())
 }
 
-/// Check if any existing issue is a likely duplicate (Jaccard > 0.8).
+/// Check if any existing issue is a likely duplicate.
+/// Tries fingerprint-first, then falls back to title Jaccard similarity.
 pub fn has_duplicate(repo: &str, title: &str) -> bool {
+    has_duplicate_with_fp(repo, title, None)
+}
+
+/// Check for duplicate with optional fingerprint (fingerprint-first strategy).
+pub fn has_duplicate_with_fp(repo: &str, title: &str, fingerprint: Option<&str>) -> bool {
+    // 1. Fingerprint dedup check (fast, exact)
+    if let Some(fp) = fingerprint {
+        if find_by_fingerprint(repo, fp).is_some() {
+            return true;
+        }
+    }
+
+    // 2. Fallback: title Jaccard similarity
     if let Ok(matches) = find_similar(repo, title) {
         matches
             .iter()

@@ -1,7 +1,10 @@
+mod bundle;
 mod check;
 mod detect;
 mod file;
+mod redact;
 mod registry;
+mod submit;
 
 use clap::{Parser, Subcommand};
 
@@ -55,6 +58,17 @@ enum Commands {
         #[arg(long)]
         config: Option<String>,
     },
+    /// Submit a saved bundle to GitHub
+    Submit {
+        /// Path to the bundle JSON file
+        bundle_path: String,
+        /// Skip confirmation prompt and session limit
+        #[arg(long)]
+        force: bool,
+        /// Config file path
+        #[arg(long)]
+        config: Option<String>,
+    },
     /// Initialize config for your org
     Init,
 }
@@ -86,6 +100,11 @@ fn main() {
             force,
             config.as_deref(),
         ),
+        Commands::Submit {
+            bundle_path,
+            force,
+            config,
+        } => submit::run(&bundle_path, force, config.as_deref()),
         Commands::Init => init_config(),
     };
 
